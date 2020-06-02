@@ -7,51 +7,39 @@ using namespace boost::numeric::ublas;
 
 const double BOLTZMANN = 1.0;
 
-struct GeneralisedIsingParams {
-    vector<bool> initial_spins;
 
-    vector<double> external_field; // h
+enum IsingParamsErrors {
+    ISING_PARAMS_OK = 0,
+    INCONSISTENT_DIMENSIONS = 1,
+    NONZERO_INTERACTION_OF_NONADJACENT_SPINS = 2,
+    NEGATIVE_TEMPERATURE = 3
+};
 
-    // J(i, j) = interaction between spins i & j
-    // This matrix non-zero elements define
-    // which spins in `initial_spins` are adjacent
-    matrix<double> interaction;
-
+class IsingParams {
+public:
+    vector<int> initial_spins;
     double temperature = 0.0; // T
     double magnetic_moment = 1.0; // mu
+
+    explicit IsingParams(uint size) : initial_spins(size) {}
+
+    virtual IsingParamsErrors check_validity() = 0;
+
+    static std::string get_error_message(IsingParamsErrors errors);
 };
 
-enum IsingModelParamsErrors {
-    OK,
-    INCONSISTENT_DIMENSIONS,
-    BAD_XSIZE,
-    NONZERO_INTERACTION_OF_NONADJACENT_SPINS,
-    NEGATIVE_TEMPERATURE
-};
-
-class GeneralisedIsingModel {
+class IsingModel {
 protected:
-    struct GeneralisedIsingParams params;
-
-    vector<bool> spins; // current configuration
-
     unsigned int step_count = 0;
 
-    // These static functions should really be methods of 'Params' class
-    static IsingModelParamsErrors
-    are_params_valid(struct GeneralisedIsingParams &params);
-
-    static bool all_sizes_equal(GeneralisedIsingParams &params);
-
-    static std::string get_error_message(IsingModelParamsErrors errors);
+    vector<int> spins; // current configuration
 
     double get_spin(size_t index) const;
 
-    double get_spin_energy(size_t index) const;
-public:
-    explicit GeneralisedIsingModel(struct GeneralisedIsingParams initial_params);
+    virtual double get_spin_energy(size_t index) const = 0;
 
-    const vector<bool> &get_spins() const {
+public:
+    const vector<int> &get_spins() const {
         return spins;
     }
 
@@ -59,17 +47,74 @@ public:
 
     virtual void run(uint no_steps) = 0;
 
-    void reset();
-
+    virtual void reset() = 0;
 };
 
-class TwoDimensionalIsingModel : public GeneralisedIsingModel {
-    // Like Generalised IsingModel, but requires that J(i, j)
-    // is non-zero only if spins[i] and spins[j] are adjacent when we treat
-    // `spins` as a 2D matrix with dimensions row_size x col_size;
-    // row_size x col_size must equal size
 
-    explicit TwoDimensionalIsingModel(struct TwoDimensionalIsingParams params);
+class GeneralisedIsingParams : public IsingParams {
+    bool all_sizes_equal();
+
+public:
+    vector<double> external_field; // h
+    // J(i, j) = interaction between spins i & j
+    // This matrix non-zero elements define
+    // which spins in `initial_spins` are adjacent
+    matrix<double> interaction;
+
+    IsingParamsErrors check_validity();
+
+    explicit GeneralisedIsingParams(uint size)
+            : IsingParams(size),
+              external_field(size),
+              interaction(size, size) {
+    }
+};
+
+class GeneralisedIsingModel : public IsingModel {
+    // Ising Model for any geometry
+    // Adjacency is determined by the interaction matrix
+    // External field can be different at any spin
+
+protected:
+    GeneralisedIsingParams params;
+
+    double get_spin_energy(size_t index) const;
+
+public:
+    explicit GeneralisedIsingModel(GeneralisedIsingParams initial_params);
+
+    void reset();
+};
+
+
+class Simple2DIsingParams : public IsingParams {
+public:
+    double interaction = 0.0; // J
+
+    double external_field = 0.0; // B
+
+    size_t xlen, ylen; // index = x + y * xlen
+
+    IsingParamsErrors check_validity();
+
+    Simple2DIsingParams(size_t xlen_, size_t ylen_)
+            : IsingParams(xlen_ * ylen_), xlen(xlen_), ylen(ylen_) {}
+};
+
+class Simple2DIsingModel : public IsingModel {
+    // Simple model from J. Tworzydlo's CMPP lecture summer 2019
+    // -J \sum_{<i j>} s_i s_j - \mu B \sum_i s_i
+    // where <i j> are direct neighbours in cardinal directions on a 2D grid
+
+protected:
+    Simple2DIsingParams params;
+
+    double get_spin_energy(size_t index) const;
+
+public:
+    explicit Simple2DIsingModel(Simple2DIsingParams params);
+
+    void reset();
 };
 
 #endif //_ISING_SIMULATION_H_

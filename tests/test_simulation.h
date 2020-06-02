@@ -17,12 +17,12 @@ public:
     }
 };
 
-vector<bool> prepare_initial_spins(uint sqrt_size) {
+vector<int> prepare_initial_spins(uint sqrt_size) {
     uint size = sqrt_size * sqrt_size;
-    vector<bool> res(size);
+    vector<int> res(size);
     std::mt19937 random_engine(1230ULL);
     for (int i = 0; i < size; i++) {
-        res(i) = 0.5 < random_double(random_engine);
+        res(i) = 0.5 < random_double(random_engine) ? 1 : -1;
     }
     return res;
 }
@@ -63,7 +63,7 @@ matrix<double> prepare_interaction(uint sqrt_size) {
 }
 
 struct GeneralisedIsingParams prepare_params(uint sqrt_size) {
-    struct GeneralisedIsingParams params;
+    struct GeneralisedIsingParams params(sqrt_size * sqrt_size);
     params.magnetic_moment = 1.0;
     params.temperature = 0.1;
     params.initial_spins = prepare_initial_spins(sqrt_size);
@@ -89,10 +89,10 @@ int test_get_total_energy(const NotabstractGeneralisedIsingModel &model) {
 
 int test_get_spins(const NotabstractGeneralisedIsingModel &model) {
     uint size = model.get_spins().size();
-    vector<bool> res(size);
+    vector<int> res(size);
     std::mt19937 random_engine(1230ULL);
     for (int i = 0; i < size; i++) {
-        res(i) = 0.5 < random_double(random_engine);
+        res(i) = 0.5 < random_double(random_engine) ? 1 : -1;
         if (res(i) != model.get_spins()(i)) {
             return fail("get_spins", "Not equal spins");
         }
@@ -108,10 +108,10 @@ TEST_SUITE_END
 
 // Methods below to be used to test concrete implementations
 
-void print_spins(const vector<bool> &c) {
+void print_spins(const vector<int> &c) {
     uint sqrt_size = (uint) std::sqrt(c.size());
     for (int j = 0; j < c.size(); j++) {
-        std::cout << (c[j] ? "↑" : ".");
+        std::cout << ((c[j] == 1) ? "↑" : ".");
         if (j % sqrt_size == sqrt_size - 1) {
             std::cout << std::endl;
         }
@@ -120,14 +120,13 @@ void print_spins(const vector<bool> &c) {
 }
 
 int test_run(GeneralisedIsingModel &model,
-             const vector<double> &external_field,
-             uint sqrt_size) {
+             const vector<double> &external_field) {
     model.run(1000);
 
-    vector<bool> res = model.get_spins();
-    vector<bool> expected(res.size());
+    vector<int> res = model.get_spins();
+    vector<int> expected(res.size());
     for (size_t i = 0; i < external_field.size(); i++) {
-        expected(i) = external_field(i) > 0;
+        expected(i) = (external_field(i) > 0) ? 1 : -1;
     }
 
     for (size_t i = 0; i < expected.size(); i++) {
@@ -141,13 +140,40 @@ int test_run(GeneralisedIsingModel &model,
     return success("GeneralisedModel run");
 }
 
+Simple2DIsingParams prepare_params_simple() {
+    Simple2DIsingParams params(10, 10);
+    params.external_field = 7.0;
+    params.interaction = 1.0;
+    params.temperature = 0.0;
+
+    vector<int> initial_spins(100);
+    for (int i = 0; i < 100; i++) {
+        initial_spins(i) = i / 10 > 7 ? 1 : -1;
+    }
+    params.initial_spins = initial_spins;
+    return params;
+}
+
+int test_run_simple(Simple2DIsingModel &model) {
+    print_spins(model.get_spins());
+    model.run(100);
+    print_spins(model.get_spins());
+    vector<int> spins = model.get_spins();
+    for (int i = 0; i < 100; i++) {
+        if (spins(i) != -1) {
+            return fail("Simple2DModel run", "Bad spin");
+        }
+    }
+    return success("Simple2DModel run");
+}
+
 int test_reset(GeneralisedIsingModel &model,
-               const vector<bool> &initial_spins) {
+               const vector<int> &initial_spins) {
     model.reset();
     model.run(1000);
-    vector<bool> res = model.get_spins();
+    vector<int> res = model.get_spins();
     model.reset();
-    vector<bool> reset = model.get_spins();
+    vector<int> reset = model.get_spins();
     for (size_t i = 0; i < res.size(); i++) {
         if (reset(i) != initial_spins(i)) {
             return fail("GeneralisedModel reset",

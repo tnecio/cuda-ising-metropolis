@@ -40,7 +40,7 @@ float get_spin(int i, int *in_spins) {
 }
 
 __device__
-float get_spin_energy(int i, struct DeviceMemoryParams dev) {
+float get_spin_energy(int i, struct GeneralisedModelDeviceMemoryParams dev) {
     float res = 0;
     float spin = get_spin(i, dev.spins);
     res += -dev.magnetic_moment *
@@ -52,27 +52,62 @@ float get_spin_energy(int i, struct DeviceMemoryParams dev) {
 }
 
 __device__
+float get_spin_energy_simple(int i, struct Simple2DModelDeviceMemoryParams dev) {
+    float res = 0;
+    float spin = get_spin(i, dev.spins);
+    res += -dev.magnetic_moment *
+           dev.external_field * spin;
+    for (int j = 0; j < dev.n; j++) {
+        res += dev.interaction * spin * get_spin(j, dev.spins);
+    }
+    return res;
+}
+
+__device__
 float get_spin_flip_prob(float energy, float beta) {
     return exp(-beta * energy);
 }
 
 __global__
-void flip_spins_stochastically(struct DeviceMemoryParams dev) {
+void flip_spins_stochastically(struct GeneralisedModelDeviceMemoryParams dev) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < dev.n) {
         float energy = get_spin_energy(i, dev);
         if (energy < 0 ||
             dev.prng.where[i] < get_spin_flip_prob(energy, dev.beta)) {
-            dev.out_spins[i] = !dev.spins[i];
+            dev.out_spins[i] = -dev.spins[i];
         } else {
             dev.out_spins[i] = dev.spins[i];
         }
     }
 }
 
-void execute_one_step(struct DeviceMemoryParams &dev) {
+__global__
+void flip_spins_stochastically_simple(struct Simple2DModelDeviceMemoryParams dev, int offset) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int is_odd = (i + (i / dev.xlen * !(dev.xlen % 2)) + offset) % 2;
+    if (i < dev.n && is_odd) {
+        float energy = get_spin_energy_simple(i, dev);
+        if (energy < 0 ||
+            dev.prng.where[i] < get_spin_flip_prob(energy, dev.beta)) {
+            dev.out_spins[i] = -dev.spins[i];
+        } else {
+            dev.out_spins[i] = dev.spins[i];
+        }
+    }
+}
+
+
+void execute_one_step(struct GeneralisedModelDeviceMemoryParams &dev) {
     int blocks = (dev.n + 255) / 256;
     int THREADS_PER_BLOCK = 256;
     dev.prng.generate();
     flip_spins_stochastically<<<blocks, THREADS_PER_BLOCK>>>(dev);
+}
+
+void execute_one_step_simple(Simple2DModelDeviceMemoryParams &dev, int offset) {
+    int blocks = (dev.n + 255) / 256;
+    int THREADS_PER_BLOCK = 256;
+    dev.prng.generate();
+    flip_spins_stochastically_simple<<<blocks, THREADS_PER_BLOCK>>>(dev, offset);
 }

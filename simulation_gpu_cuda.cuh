@@ -20,7 +20,7 @@ public:
     float *where;
 };
 
-struct DeviceMemoryParams {
+struct GeneralisedModelDeviceMemoryParams {
     int *spins;
     float *interaction;
     float *external_field;
@@ -32,12 +32,33 @@ struct DeviceMemoryParams {
 
     int *out_spins;
 
-    DeviceMemoryParams(unsigned long long int seed, int prng_size)
+    GeneralisedModelDeviceMemoryParams(unsigned long long int seed, int prng_size)
     : prng(seed, prng_size) {
     }
 };
 
-void execute_one_step(struct DeviceMemoryParams &dev);
+void execute_one_step(struct GeneralisedModelDeviceMemoryParams &dev);
+
+struct Simple2DModelDeviceMemoryParams {
+    int *spins;
+    int xlen;
+    float interaction;
+    float external_field;
+    float beta;
+    float magnetic_moment;
+
+    CudaPRNG prng;
+    int n;
+
+    int *out_spins;
+
+    Simple2DModelDeviceMemoryParams(unsigned long long int seed, int prng_size)
+            : prng(seed, prng_size) {
+    }
+};
+
+void execute_one_step_simple(struct Simple2DModelDeviceMemoryParams &dev, int offset);
+
 
 template<typename T>
 T *copy_array_to_device(int size, T *from);

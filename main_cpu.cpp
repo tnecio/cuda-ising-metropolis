@@ -8,9 +8,9 @@
 
 void print_current_configuration(const int sqrt_size, const GeneralisedIsingModel &simulation) {
     const int size = sqrt_size * sqrt_size;
-    const vector<bool> &c = simulation.get_spins();
+    const vector<int> &c = simulation.get_spins();
     for (int j = 0; j < size; j++) {
-        std::cout << (c[j] ? "↑" : ".");
+        std::cout << ((c[j] == 1) ? "↑" : ".");
         if (j % sqrt_size == sqrt_size - 1) {
             std::cout << std::endl;
         }
@@ -18,7 +18,7 @@ void print_current_configuration(const int sqrt_size, const GeneralisedIsingMode
     std::cout << std::endl;
 }
 
-void prepare_test_values(vector<bool> &initial_configuration,
+void prepare_test_values(vector<int> &initial_configuration,
                          matrix<double> &J,
                          vector<double> &h,
                          size_t sqrt_size) {
@@ -30,7 +30,7 @@ void prepare_test_values(vector<bool> &initial_configuration,
     std::uniform_real_distribution<> distribution(0., 1.);
 
     for (int i = 0; i < size; i++) {
-        initial_configuration(i) = 0.5 < distribution(random_engine);
+        initial_configuration(i) = (0.5 < distribution(random_engine)) ? 1 : -1;
     }
 
     for (uint i = 0; i < J.size1(); i++) {
@@ -59,7 +59,7 @@ void prepare_test_values(vector<bool> &initial_configuration,
 void main_cpu() {
     uint sqrt_size = 10;
     uint size = sqrt_size * sqrt_size;
-    vector<bool> initial_configuration(size);
+    vector<int> initial_configuration(size);
     double T = 0.1;
     matrix<double> J(size, size);
     vector<double> h(size);

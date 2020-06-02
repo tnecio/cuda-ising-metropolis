@@ -64,13 +64,6 @@ int test_copy_array_to_device() {
 //}
 //
 //
-//int *copy_bool_vector_to_gpu(const vector<bool> &v) {
-//    int *host_arr = vector_to_array<bool, int>(v);
-//    int *dev_arr = copy_array_to_device<int>(v.size(), host_arr);
-//    delete[] host_arr;
-//    return dev_arr;
-//}
-//
 //float *matrix_to_float_array(const matrix<double> &in) {
 //    float *out = new float[in.size1() * in.size2()];
 //    for (size_t i = 0; i < in.size1(); i++) {
@@ -83,7 +76,7 @@ int test_copy_array_to_device() {
 //
 //int test_execute_one_step() {
 //    GeneralisedIsingParams params = prepare_params(10);
-//    struct DeviceMemoryParams dev(2020ULL, params.initial_spins.size());
+//    struct GeneralisedModelDeviceMemoryParams dev(2020ULL, params.initial_spins.size());
 //    dev.spins = copy_bool_vector_to_gpu(params.initial_spins);
 //    dev.out_spins = copy_bool_vector_to_gpu(params.initial_spins);
 //    dev.interaction = copy_matrix_to_gpu(params.interaction);
