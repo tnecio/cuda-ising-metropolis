@@ -6,35 +6,15 @@
 
 class PRNG {
 private:
-    std::random_device random_device;
     std::mt19937 random_engine;
     std::uniform_real_distribution<> real_dist;
-    std::uniform_int_distribution<> int_dist;
 
 public:
-    explicit PRNG(uint int_limit);
-
-    uint random_uint();
+    explicit PRNG(unsigned long long seed);
 
     double random_double();
 };
 
-
-class CPUGeneralisedIsingModel : public GeneralisedIsingModel {
-private:
-    PRNG prng;
-
-    void flip_spin_stochastically();
-
-    void flip_spin_deterministically(uint index, vector<int> &new_spins);
-
-    double get_spin_flip_prob(double energy) const;
-
-public:
-    CPUGeneralisedIsingModel(GeneralisedIsingParams initial_params);
-
-    void run(uint no_steps);
-};
 
 class CPUSimple2DIsingModel : public Simple2DIsingModel {
 private:
@@ -49,7 +29,7 @@ private:
 public:
     CPUSimple2DIsingModel(Simple2DIsingParams initial_params);
 
-    void run(uint no_steps);
+    void run(size_t max_steps);
 };
 
 

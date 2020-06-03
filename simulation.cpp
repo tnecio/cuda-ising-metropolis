@@ -2,6 +2,9 @@
 
 #include "simulation.h"
 
+double calc_beta(double temperature) {
+    return 1.0 / (BOLTZMANN * temperature);
+}
 
 std::string IsingParams::get_error_message(IsingParamsErrors e) {
     switch (e) {
@@ -26,52 +29,15 @@ double IsingModel::get_total_energy() const {
 
 
 inline double IsingModel::get_spin(size_t index) const {
-    return spins(index);
+    return spins[index];
 }
 
-
-IsingParamsErrors GeneralisedIsingParams::check_validity() {
-    if (!all_sizes_equal()) {
-        return INCONSISTENT_DIMENSIONS;
-    } else if (temperature < 0) {
-        return NEGATIVE_TEMPERATURE;
-    } else {
-        return ISING_PARAMS_OK;
+double IsingModel::get_mean_magnetisation() const {
+    double magnetisation_sum = 0;
+    for (size_t i = 0; i < spins.size(); i++) {
+        magnetisation_sum += spins[i];
     }
-}
-
-bool GeneralisedIsingParams::all_sizes_equal() {
-    return (initial_spins.size() == external_field.size()
-            && initial_spins.size() == interaction.size1()
-            && initial_spins.size() == interaction.size2());
-}
-
-
-GeneralisedIsingModel::GeneralisedIsingModel(
-        GeneralisedIsingParams initial_params)
-        : params(initial_params) {
-    IsingParamsErrors validation = initial_params.check_validity();
-    if (validation == ISING_PARAMS_OK) {
-        this->spins = initial_params.initial_spins;
-    } else {
-        throw std::runtime_error(IsingParams::get_error_message(validation));
-    }
-}
-
-void GeneralisedIsingModel::reset() {
-    spins = params.initial_spins;
-    step_count = 0;
-}
-
-inline double GeneralisedIsingModel::get_spin_energy(size_t index) const {
-    double res = 0;
-    double spin = get_spin(index);
-    res += -params.magnetic_moment *
-           params.external_field(index) * spin;
-    for (uint j = 0; j < spins.size(); j++) {
-        res += -params.interaction(index, j) * spin * get_spin(j);
-    }
-    return res;
+    return magnetisation_sum / spins.size();
 }
 
 Simple2DIsingModel::Simple2DIsingModel(Simple2DIsingParams initial_params)
@@ -123,4 +89,8 @@ double Simple2DIsingModel::get_spin_energy(size_t index) const {
 void Simple2DIsingModel::reset() {
     spins = params.initial_spins;
     step_count = 0;
+}
+
+double Simple2DIsingModel::get_susceptibility() {
+    return get_mean_magnetisation() / params.external_field;
 }
