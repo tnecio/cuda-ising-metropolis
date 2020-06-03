@@ -5,22 +5,22 @@
 
 #include "simulation_gpu_cuda.cuh"
 
-
-class GPUGeneralisedIsingModel : public GeneralisedIsingModel {
-protected:
-    struct GeneralisedModelDeviceMemoryParams prepare_gpu() const;
-
-    void execute_simulation_step_on_gpu(
-            struct GeneralisedModelDeviceMemoryParams &dev) const;
-
-    void read_spins_from_gpu(struct GeneralisedModelDeviceMemoryParams dev);
-
-public:
-    GPUGeneralisedIsingModel(GeneralisedIsingParams initial_params) :
-    GeneralisedIsingModel(initial_params) { }
-
-    void run(uint no_steps);
-};
+//
+//class GPUGeneralisedIsingModel : public GeneralisedIsingModel {
+//protected:
+//    struct GeneralisedModelDeviceMemoryParams prepare_gpu() const;
+//
+//    void execute_simulation_step_on_gpu(
+//            struct GeneralisedModelDeviceMemoryParams &dev) const;
+//
+//    void read_spins_from_gpu(struct GeneralisedModelDeviceMemoryParams dev);
+//
+//public:
+//    GPUGeneralisedIsingModel(GeneralisedIsingParams initial_params) :
+//    GeneralisedIsingModel(initial_params) { }
+//
+//    void run(uint no_steps);
+//};
 
 class GPUSimple2DIsingModel : public Simple2DIsingModel {
 protected:

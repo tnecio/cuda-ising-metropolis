@@ -19,29 +19,30 @@ public:
 
     float *where;
 };
-
-struct GeneralisedModelDeviceMemoryParams {
-    int *spins;
-    float *interaction;
-    float *external_field;
-    float beta;
-    float magnetic_moment;
-
-    CudaPRNG prng;
-    int n;
-
-    int *out_spins;
-
-    GeneralisedModelDeviceMemoryParams(unsigned long long int seed, int prng_size)
-    : prng(seed, prng_size) {
-    }
-};
-
-void execute_one_step(struct GeneralisedModelDeviceMemoryParams &dev);
+//
+//struct GeneralisedModelDeviceMemoryParams {
+//    int *spins;
+//    float *interaction;
+//    float *external_field;
+//    float beta;
+//    float magnetic_moment;
+//
+//    CudaPRNG prng;
+//    int n;
+//
+//    int *out_spins;
+//
+//    GeneralisedModelDeviceMemoryParams(unsigned long long int seed, int prng_size)
+//    : prng(seed, prng_size) {
+//    }
+//};
+//
+//void execute_one_step(struct GeneralisedModelDeviceMemoryParams &dev);
 
 struct Simple2DModelDeviceMemoryParams {
     int *spins;
     int xlen;
+    int ylen;
     float interaction;
     float external_field;
     float beta;
@@ -49,8 +50,6 @@ struct Simple2DModelDeviceMemoryParams {
 
     CudaPRNG prng;
     int n;
-
-    int *out_spins;
 
     Simple2DModelDeviceMemoryParams(unsigned long long int seed, int prng_size)
             : prng(seed, prng_size) {
