@@ -46,7 +46,7 @@ public:
     double get_total_energy() const;
 
     double get_mean_magnetisation() const;
-    
+
     virtual double get_susceptibility() = 0;
 
     virtual void run(size_t max_steps) = 0;

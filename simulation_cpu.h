@@ -1,6 +1,7 @@
-
 #ifndef ISING_SIMULATION_CPU_H
 #define ISING_SIMULATION_CPU_H
+
+#include <random>
 
 #include "simulation.h"
 
