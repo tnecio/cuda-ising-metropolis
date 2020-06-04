@@ -83,6 +83,8 @@ public:
 
     double get_susceptibility();
 
+    double get_specific_heat();
+
     void reset();
 };
 

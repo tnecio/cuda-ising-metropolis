@@ -71,9 +71,10 @@ void
 flip_one_spin_stochastically(struct Simple2DIsingParamsDevice &dev,
                              size_t i,
                              float *random_floats) {
-    float energy = get_spin_energy_simple(i, dev);
-    if (energy < 0 ||
-        random_floats[i] < get_spin_flip_prob(energy, dev.beta)) {
+    // \Delta E = E_after_flip - E_now = -spin_energy_now - spin_energy_now
+    float delta_energy = -2 * get_spin_energy_simple(i, dev);
+    if (delta_energy < 0 ||
+        random_floats[i] < get_spin_flip_prob(delta_energy, dev.beta)) {
         dev.spins[i] = -dev.spins[i];
     }
 }
@@ -84,7 +85,9 @@ flip_spins_stochastically(struct Simple2DIsingParamsDevice dev,
                           int offset,
                           float *random_floats) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int is_odd_position = (i + (i / dev.xlen * !(dev.xlen % 2)) + offset) % 2;
+    int x = i % dev.xlen;
+    int y = i / dev.xlen;
+    int is_odd_position = (x + y + offset) % 2;
     if (i < dev.n && is_odd_position) {
         flip_one_spin_stochastically(dev, i, random_floats);
     }

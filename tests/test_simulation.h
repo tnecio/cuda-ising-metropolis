@@ -65,7 +65,7 @@ int test_run_simple(Simple2DIsingModel &model) {
     print_spins(model.get_spins());
     std::vector<int> spins = model.get_spins();
     for (int i = 0; i < 100; i++) {
-        if (spins[i] != -1) {
+        if (spins[i] != 1) {
             return fail("Simple2DModel run", "Bad spin");
         }
     }

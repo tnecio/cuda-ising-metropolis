@@ -6,7 +6,7 @@
 #include "simulation.h"
 
 class PRNG {
-private:
+protected:
     std::mt19937 random_engine;
     std::uniform_real_distribution<> real_dist;
 
@@ -14,6 +14,19 @@ public:
     explicit PRNG(unsigned long long seed);
 
     double random_double();
+};
+
+class BufferedPRNG : public PRNG {
+private:
+    std::vector<double> buffer;
+    size_t buffer_size;
+    size_t usage_count = 0;
+
+    void generate();
+public:
+    explicit BufferedPRNG(unsigned long long seed, size_t size);
+
+    double random_double(size_t index);
 };
 
 

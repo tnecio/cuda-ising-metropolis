@@ -92,5 +92,26 @@ void Simple2DIsingModel::reset() {
 }
 
 double Simple2DIsingModel::get_susceptibility() {
-    return get_mean_magnetisation() / params.external_field;
+    double expected_square_magn = 1;  // (1**2 = (-1)**2 = 1)
+    double expected_magn = get_mean_magnetisation();
+    double expected_magn_squared = expected_magn * expected_magn;
+    double temperature_sq = params.temperature * params.temperature;
+
+    return (expected_square_magn - expected_magn_squared) / (temperature_sq);
+}
+
+double Simple2DIsingModel::get_specific_heat() {
+    double sum_energy = get_total_energy();
+    double sum_energy_sq = 0;
+    for (size_t i = 0; i < spins.size(); i++) {
+        double spin_energy = get_spin_energy(i);
+        sum_energy_sq += spin_energy * spin_energy;
+    }
+
+    double n = spins.size();
+    double expected_square_energy = sum_energy_sq / n;
+    double expected_energy_squared = (sum_energy / n) * (sum_energy / n);
+    double temperature_sq = params.temperature * params.temperature;
+
+    return (expected_square_energy - expected_energy_squared) / (temperature_sq);
 }
