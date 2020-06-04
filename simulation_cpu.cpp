@@ -12,26 +12,6 @@ double PRNG::random_double() {
     return real_dist(random_engine);
 }
 
-BufferedPRNG::BufferedPRNG(unsigned long long int seed, size_t size)
-        : PRNG(seed), buffer(size), buffer_size(size) {
-    generate();
-}
-
-double BufferedPRNG::random_double(size_t index) {
-    double res = buffer[index];
-    usage_count++;
-    if (usage_count == buffer_size) {
-        usage_count = 0;
-        generate();
-    }
-    return res;
-}
-
-void BufferedPRNG::generate() {
-    for (size_t i = 0; i < buffer_size; i++) {
-        buffer[i] = real_dist(random_engine);
-    }
-}
 
 CPUSimple2DIsingModel::CPUSimple2DIsingModel(
         Simple2DIsingParams initial_params)
